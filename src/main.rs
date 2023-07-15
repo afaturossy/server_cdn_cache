@@ -6,6 +6,7 @@ use dotenvy::{dotenv, var};
 mod router;
 pub mod error;
 
+
 #[tokio::main]
 async fn main() {
     //region ENV
