@@ -71,7 +71,11 @@ async fn cdn(State(client): State<Arc<Client>>, Path(url): Path<String>) -> Resu
 
 
 async fn new_data(client: &Client, url: &str, path: PathBuf) -> Result<Vec<u8>, Box<dyn Error>> {
-    let resp = client.get(url).send().await?;
+    let host = reqwest::Url::parse(url)?;
+    let host = host.host_str().unwrap_or("");
+
+    let resp = client.get(url)
+        .header(header::REFERER, host).send().await?;
     let body = resp.bytes().await?;
 
     //convert
