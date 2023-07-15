@@ -76,18 +76,22 @@ async fn new_data(client: &Client, url: &str, path: PathBuf) -> Result<Vec<u8>, 
 
     let resp = client.get(url)
         .header(header::REFERER, host).send().await?;
+    let content_length = resp.content_length().unwrap_or(0);
     let body = resp.bytes().await?;
 
-    //convert
-    let s = std::time::Instant::now();
-    let img = image::load_from_memory(&body)?;
-    let convert = img.save_with_format(&path, image::ImageFormat::WebP);
-    if convert.is_err() {
-        let _ = std::fs::remove_file(&path);
+    //region ->> convert or direct save
+    if content_length < 3000000{
+        let img = image::load_from_memory(&body)?;
+        let convert = img.save_with_format(&path, image::ImageFormat::WebP);
+        if convert.is_err() {
+            let _ = std::fs::remove_file(&path);
+        }
+    }else{
+        std::fs::write(&path, body)?;
     }
+    //endregion
+
     let a = std::fs::read(path)?;
-    let e = std::time::Instant::now();
-    println!("{:?}", e - s);
     Ok(a)
 }
 
