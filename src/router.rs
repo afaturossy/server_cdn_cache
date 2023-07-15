@@ -1,8 +1,7 @@
 use std::error::Error;
 use std::path::PathBuf;
-use std::sync::Arc;
 
-use axum::extract::{Path, State};
+use axum::extract::Path;
 use axum::http::HeaderName;
 use axum::Router;
 use axum::routing::get;
@@ -13,27 +12,25 @@ use tower_http::cors::CorsLayer;
 use crate::error::MyError;
 
 pub fn router() -> Router {
-    let client = reqwest::ClientBuilder::new()
-        .default_headers({
-            let mut headers = header::HeaderMap::new();
-            headers.insert(header::USER_AGENT, header::HeaderValue::from_static(
-                "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36"));
-            headers
-        })
-        .build().expect("client error di buat");
-
-    let client = Arc::new(client);
-
     Router::new()
         .route("/cdn/:url", get(cdn))
-        .with_state(client)
         .layer(CorsLayer::new()
             .allow_origin(tower_http::cors::Any)
             .allow_methods(tower_http::cors::Any))
 }
 
+fn create_client() -> Client {
+    let mut headers = header::HeaderMap::new();
+    headers.insert(header::USER_AGENT, header::HeaderValue::from_static(
+        "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36"));
 
-async fn cdn(State(client): State<Arc<Client>>, Path(url): Path<String>) -> Result<([(HeaderName, String); 2], Vec<u8>), MyError> {
+    reqwest::ClientBuilder::new()
+        .default_headers(headers)
+        .build().expect("client error di buat")
+}
+
+async fn cdn(Path(url): Path<String>) -> Result<([(HeaderName, String); 2], Vec<u8>), MyError> {
+    let client = create_client();
     let cache_name = md5::compute(&url);
     {}
     let cache_name = format!("{:?}", cache_name);
