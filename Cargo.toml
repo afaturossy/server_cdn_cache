@@ -1,0 +1,16 @@
+[package]
+name = "server_cdn_cache"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+axum = "0.6.18"
+dotenvy = "0.15.7"
+image = { version = "0.24.6", features=["webp"]}
+md5 = "0.7.0"
+reqwest = "0.11.18"
+tokio = { version = "1.29.1", features = ["full"] }
+tower-http = { version = "0.4.1", features = ["cors", "set-header"] }
+webp = "0.2.4"
