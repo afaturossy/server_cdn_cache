@@ -47,14 +47,24 @@ async fn cdn(State(client): State<Arc<Client>>, Path(url): Path<String>) -> Resu
 
     match data_cache {
         Ok(v) => {
-            if v.is_file() {
+            let size = v.len();
+            if v.is_file() && size > 200{
                 let image = tokio::fs::read(path).await;
                 if image.is_ok() {
                     let image = image.unwrap();
                     return Ok(([(header::CONTENT_TYPE, "image/webp".to_string()), (header::CACHE_CONTROL, "public, max-age=604800".to_string())],
                                image));
                 }
+            }else{
+                let image_webp = new_data(&client, &url, path).await;
+                if image_webp.is_err() {
+                    return Err(MyError::InternalServerError);
+                }
+                let image_webp = image_webp.unwrap();
+                return Ok(([(header::CONTENT_TYPE, "image/webp".to_string()), (header::CACHE_CONTROL, "public, max-age=604800".to_string())],
+                           image_webp));
             }
+
         }
         Err(_) => {
             let image_webp = new_data(&client, &url, path).await;
