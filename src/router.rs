@@ -8,6 +8,7 @@ use axum::Router;
 use axum::routing::get;
 use dotenvy::var;
 use reqwest::{Client, header};
+use tower_http::cors::CorsLayer;
 
 use crate::error::MyError;
 
@@ -26,6 +27,9 @@ pub fn router() -> Router {
     Router::new()
         .route("/cdn/:url", get(cdn))
         .with_state(client)
+        .layer(CorsLayer::new()
+            .allow_origin(tower_http::cors::Any)
+            .allow_methods(tower_http::cors::Any))
 }
 
 
