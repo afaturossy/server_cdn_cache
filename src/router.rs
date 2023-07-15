@@ -83,6 +83,10 @@ async fn new_data(client: &Client, url: &str, path: PathBuf) -> Result<Vec<u8>, 
 
     let resp = client.get(url)
         .header(header::REFERER, host).send().await?;
+    if resp.status() != 200 {
+        return Err(Box::new(std::io::Error::new(std::io::ErrorKind::ConnectionAborted, "error get image")));
+    }
+
     let body = resp.bytes().await?;
 
     let body_copy = body.clone();
