@@ -588,6 +588,7 @@ dependencies = [
  "png",
  "qoi",
  "tiff",
+ "webp",
 ]
 
 [[package]]
@@ -1184,7 +1185,6 @@ dependencies = [
  "reqwest",
  "tokio",
  "tower-http",
- "webp",
 ]
 
 [[package]]
@@ -1556,7 +1556,6 @@ version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1cf4eb6b771babe49cf2499777779a2ba9ff9ed3e531040584605732fcfd2e35"
 dependencies = [
- "image",
  "libwebp-sys",
 ]
 

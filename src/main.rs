@@ -1,3 +1,6 @@
+use std::error::Error;
+use std::time::{Duration, SystemTime};
+
 use dotenvy::{dotenv, var};
 
 mod router;
@@ -12,6 +15,16 @@ async fn main() {
     tokio::fs::create_dir_all(folder).await.expect("gagal create folder cache");
     //endregion
 
+    tokio::spawn(async move {
+        loop {
+            tokio::time::sleep(Duration::from_secs(7 * 24 * 60 * 60)).await;
+            let resp = remove_cache().await;
+            if let Err(resp) = resp {
+                println!("ERROR remove_cache->> {:?} ", resp);
+            }
+        }
+    });
+
     let app = router::router();
 
     let addr = format!("0.0.0.0:{}", port);
@@ -22,4 +35,26 @@ async fn main() {
         .serve(app.into_make_service())
         .await
         .unwrap();
+}
+
+async fn remove_cache() -> Result<(), Box<dyn Error>> {
+    let folder = var("FOLDER_CACHE").unwrap();
+    let path_folder = std::path::Path::new(&folder);
+
+    let batas_waktu = SystemTime::now() - Duration::from_secs(30 * 24 * 60 * 60); // 1 bulan
+
+
+    if let Ok(entries) = std::fs::read_dir(path_folder) {
+        for entry in entries {
+            if let Ok(entry) = entry {
+                let meta = entry.metadata()?;
+                let last_mod = meta.created()?;
+                if last_mod <= batas_waktu {
+                    let _ = std::fs::remove_file(entry.path());
+                }
+            }
+        }
+    }
+
+    Ok(())
 }
