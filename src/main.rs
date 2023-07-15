@@ -45,13 +45,11 @@ async fn remove_cache() -> Result<(), Box<dyn Error>> {
 
 
     if let Ok(entries) = std::fs::read_dir(path_folder) {
-        for entry in entries {
-            if let Ok(entry) = entry {
-                let meta = entry.metadata()?;
-                let last_mod = meta.created()?;
-                if last_mod <= batas_waktu {
-                    let _ = std::fs::remove_file(entry.path());
-                }
+        for entry in entries.flatten() {
+            let meta = entry.metadata()?;
+            let last_mod = meta.created()?;
+            if last_mod <= batas_waktu {
+                let _ = std::fs::remove_file(entry.path());
             }
         }
     }
