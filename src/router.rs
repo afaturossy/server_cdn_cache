@@ -51,7 +51,7 @@ async fn cdn(State(client): State<Arc<Client>>, Path(url): Path<String>) -> Resu
                 let image = tokio::fs::read(path).await;
                 if image.is_ok() {
                     let image = image.unwrap();
-                    return Ok(([(header::CONTENT_TYPE, "image/webp".to_string()), (header::CACHE_CONTROL, "public, max-age=604800, no-transform".to_string())],
+                    return Ok(([(header::CONTENT_TYPE, "image/webp".to_string()), (header::CACHE_CONTROL, "public, max-age=604800".to_string())],
                                image));
                 }
             }
@@ -62,7 +62,7 @@ async fn cdn(State(client): State<Arc<Client>>, Path(url): Path<String>) -> Resu
                 return Err(MyError::InternalServerError);
             }
             let image_webp = image_webp.unwrap();
-            return Ok(([(header::CONTENT_TYPE, "image/avif".to_string()), (header::CACHE_CONTROL, "public, max-age=604800".to_string())],
+            return Ok(([(header::CONTENT_TYPE, "image/webp".to_string()), (header::CACHE_CONTROL, "public, max-age=604800".to_string())],
                        image_webp));
         }
     }
