@@ -43,17 +43,24 @@ async fn remove_cache() -> Result<(), Box<dyn Error>> {
     let path_folder = std::path::Path::new(&folder);
 
     let batas_waktu = SystemTime::now() - Duration::from_secs(30 * 24 * 60 * 60); // 1 bulan
-
+    
 
     if let Ok(entries) = std::fs::read_dir(path_folder) {
         for entry in entries.flatten() {
+
             let meta = entry.metadata()?;
-            let last_mod = meta.created()?;
-            if last_mod <= batas_waktu {
+
+            let last_access = meta.accessed()?;
+            if last_access <= batas_waktu {
                 let _ = std::fs::remove_file(entry.path());
             }
         }
     }
 
     Ok(())
+}
+
+#[tokio::test]
+async fn test(){
+    remove_cache().await;
 }

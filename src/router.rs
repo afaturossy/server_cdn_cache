@@ -1,8 +1,9 @@
 use std::error::Error;
 use std::path::PathBuf;
 
+use axum::body::Body;
 use axum::extract::Path;
-use axum::http::HeaderName;
+use axum::http::{HeaderName, Response};
 use axum::Router;
 use axum::routing::get;
 use dotenvy::var;
@@ -14,6 +15,7 @@ use crate::error::MyError;
 pub fn router() -> Router {
     Router::new()
         .route("/cdn/:url", get(cdn))
+        .route("/image/:url", get(redirect_to))
         .layer(CorsLayer::new()
             .allow_origin(tower_http::cors::Any)
             .allow_methods(tower_http::cors::Any))
@@ -46,7 +48,9 @@ async fn cdn(Path(url): Path<String>) -> Result<([(HeaderName, String); 2], Vec<
         Ok(v) => {
             let size = v.len();
             if v.is_file() && size > 200 {
-                let image = tokio::fs::read(path).await;
+                let image = std::fs::read(&path);
+
+                let _ = filetime::set_file_atime(&path, filetime::FileTime::now());
                 if image.is_ok() {
                     let image = image.unwrap();
                     return Ok(([(header::CONTENT_TYPE, "image/webp".to_string()), (header::CACHE_CONTROL, "public, max-age=604800".to_string())],
@@ -97,6 +101,16 @@ async fn new_data(client: &Client, url: &str, path: PathBuf) -> Result<Vec<u8>, 
 
     Ok(body.to_vec())
 }
+
+
+async fn redirect_to(Path(url): Path<String>) -> Response<Body> {
+    let mut resp = Response::new(Body::empty());
+    *resp.status_mut() = axum::http::StatusCode::FOUND;
+
+    resp.headers_mut().insert(header::LOCATION, url.parse().unwrap());
+    resp
+}
+
 
 #[tokio::test]
 async fn test() {}
